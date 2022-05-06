@@ -56,9 +56,4 @@
             </action>
         </group>
     </actions>
-
-    <!--<projectListeners>-->
-    <!--    <listener class="com.wanggaowan.rndevtools.ProjectManagerListenerImpl"-->
-    <!--              topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
-    <!--</projectListeners>-->
 </idea-plugin>
