@@ -1,0 +1,64 @@
+<idea-plugin>
+    <id>com.wanggaowan.rndevtools</id>
+    <name>RNDevTools</name>
+    <vendor email="wanggaowan@163.com" url=""/>
+
+    <!--suppress PluginXmlValidity -->
+    <description><![CDATA[
+    <h2>提供RN开发所需工具</h2>
+    <ol>
+      <li>生成图片资源引用文件</li>
+      <li>生成I18n文本资源引用文件</li>
+      <li>提供图片资源实时预览文档</li>
+      <li>提供I18n文本实时预览文档</li>
+      <li>i18n文本引用点击快速跳转定位处</li>
+    </ol>
+    ]]></description>
+
+    <depends>com.intellij.modules.ultimate</depends>
+    <depends>JavaScript</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!--必须设置order为first，否则2021.3版本之后不会调用I18nGoToDeclarationHandler-->
+        <gotoDeclarationHandler implementation="com.wanggaowan.rndevtools.declaration.I18nGoToDeclarationHandler"
+                                order="first"/>
+        <lang.documentationProvider language="TypeScript"
+                                    implementationClass="com.wanggaowan.rndevtools.description.ImageDocumentDescriptionProvider"/>
+        <lang.documentationProvider language="TypeScript JSX"
+                                    implementationClass="com.wanggaowan.rndevtools.description.ImageDocumentDescriptionProvider"/>
+        <lang.documentationProvider language="JavaScript"
+                                    implementationClass="com.wanggaowan.rndevtools.description.ImageDocumentDescriptionProvider"/>
+        <lang.documentationProvider language="TypeScript"
+                                    implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
+        <lang.documentationProvider language="TypeScript JSX"
+                                    implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
+        <lang.documentationProvider language="JavaScript"
+                                    implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
+        <notificationGroup displayType="BALLOON" id="com.wanggaowan.rndevtools.balloon" isLogByDefault="false"/>
+    </extensions>
+
+    <actions>
+        <group id="com.wanggaowan.rndevtools.actions.CreateResGroupAction"
+               class="com.wanggaowan.rndevtools.actions.CreateResGroupAction"
+               icon="SdkIcons.Sdk_default_icon"
+               text="RNDevTools"
+               popup="true">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+            <action id="com.wanggaowan.rndevtools.actions.CreateImagesResourceAction"
+                    class="com.wanggaowan.rndevtools.actions.CreateImagesResourceAction"
+                    text="生成RN图片资源引用"
+                    icon="SdkIcons.Sdk_default_icon">
+            </action>
+            <action id="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction"
+                    class="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction"
+                    text="生成RN文本资源引用"
+                    icon="SdkIcons.Sdk_default_icon">
+            </action>
+        </group>
+    </actions>
+
+    <!--<projectListeners>-->
+    <!--    <listener class="com.wanggaowan.rndevtools.ProjectManagerListenerImpl"-->
+    <!--              topic="com.intellij.openapi.project.ProjectManagerListener"/>-->
+    <!--</projectListeners>-->
+</idea-plugin>
