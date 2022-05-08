@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>com.wanggaowan.rndevtools</id>
     <name>RNDevTools</name>
-    <vendor email="wanggaowan@163.com" url=""/>
+    <vendor email="wanggaowan@163.com" url="https://github.com/wanggaowan/RNDevTools.git"/>
 
     <!--suppress PluginXmlValidity -->
     <description><![CDATA[
@@ -12,6 +12,7 @@
       <li>提供图片资源实时预览文档</li>
       <li>提供I18n文本实时预览文档</li>
       <li>i18n文本引用点击快速跳转定位处</li>
+      <li>json文件转化为TypeScript对象</li>
     </ol>
     ]]></description>
 
@@ -55,5 +56,10 @@
                     icon="SdkIcons.Sdk_default_icon">
             </action>
         </group>
+        <action id="com.wanggaowan.rndevtools.actions.JsonToTsAction"
+                class="com.wanggaowan.rndevtools.actions.JsonToTsAction" text="JsonToTypeScript"
+                description="json文件转化为ts的class，interface，type">
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>

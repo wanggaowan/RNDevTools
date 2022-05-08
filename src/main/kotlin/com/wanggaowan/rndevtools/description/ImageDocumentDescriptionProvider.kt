@@ -155,7 +155,7 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
             }
 
             is PsiFile -> {
-                element.virtualFile.path.replace("/${element.name}", "")
+                element.virtualFile?.path?.replace("/${element.name}", "")
             }
 
             else -> {

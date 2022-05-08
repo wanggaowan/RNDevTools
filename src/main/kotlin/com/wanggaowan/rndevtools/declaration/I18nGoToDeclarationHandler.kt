@@ -84,7 +84,7 @@ class I18nGoToDeclarationHandler : GotoDeclarationHandler {
             }
 
             is PsiFile -> {
-                element.virtualFile.path.replace("/${element.name}", "")
+                element.virtualFile?.path?.replace("/${element.name}", "")
             }
 
             else -> {
