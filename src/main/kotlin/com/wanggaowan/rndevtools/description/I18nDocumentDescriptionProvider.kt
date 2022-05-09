@@ -55,7 +55,7 @@ class I18nDocumentDescriptionProvider : DocumentationProvider {
                 } else {
                     originalElement
                 }
-            } else originalElement.parent.reference?.resolve()
+            } else originalElement.parent?.reference?.resolve()
 
         if (strProperty !is JSProperty && strProperty !is LeafPsiElement) {
             return null
@@ -231,7 +231,7 @@ class I18nDocumentDescriptionProvider : DocumentationProvider {
         }
 
         if (!typeValid) {
-            parent = contextElement.parent?.parent
+            parent = parent?.parent
             if (parent is JSProperty) {
                 typeValid = true
             }

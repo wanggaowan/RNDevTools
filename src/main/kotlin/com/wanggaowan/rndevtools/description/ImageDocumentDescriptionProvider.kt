@@ -53,7 +53,7 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
             } else {
                 originalElement
             }
-        } else originalElement.parent.reference?.resolve()
+        } else originalElement.parent?.reference?.resolve()
 
         if (imageProperty !is JSProperty && imageProperty !is LeafPsiElement) {
             return null
@@ -62,9 +62,9 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
         // 获取节点文本
         val value =
             (if (imageProperty is LeafPsiElement) imageProperty.text else (imageProperty as JSProperty).value?.text)?.replace(
-                    "require",
-                    ""
-                )?.replace("(", "")?.replace(")", "")?.replace("'", "")
+                "require",
+                ""
+            )?.replace("(", "")?.replace(")", "")?.replace("'", "")
         if (value.isNullOrEmpty()) {
             return null
         }
@@ -141,7 +141,10 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
      * 根据绝对图片名称获取相对图片名称
      */
     private fun getRelativeImgName(absoluteImageName: String): String {
-        return absoluteImageName.replace("@1x", "").replace("@2x", "").replace("@3x", "").replace("_android", "")
+        return absoluteImageName.replace("@1x", "")
+            .replace("@2x", "")
+            .replace("@3x", "")
+            .replace("_android", "")
             .replace("_ios", "")
     }
 
@@ -191,7 +194,7 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
         }
 
         if (!typeValid) {
-            parent = contextElement.parent?.parent?.parent
+            parent = parent?.parent?.parent
             if (parent is JSCallExpression) {
                 typeValid = true
             }

@@ -1,4 +1,4 @@
-package com.wanggaowan.rndevtools.utils
+package com.wanggaowan.rndevtools.utils.msg
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
@@ -9,7 +9,7 @@ import com.intellij.ui.awt.RelativePoint
 import javax.swing.JComponent
 
 /**
- * 吐司工具
+ * 吐司工具,吐司显示在指定组件上面，附带一个指示箭头
  *
  * @author Created by wanggaowan on 2022/5/8 17:13
  */

@@ -1,11 +1,11 @@
-package com.wanggaowan.rndevtools.utils
+package com.wanggaowan.rndevtools.utils.msg
 
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.project.Project
 
 /**
- * 通知工具类
+ * 通知工具类，右下角弹出气泡形式的通知
  *
  * @author Created by wanggaowan on 2022/5/4 14:45
  */

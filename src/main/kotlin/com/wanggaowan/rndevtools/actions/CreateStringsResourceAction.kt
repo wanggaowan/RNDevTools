@@ -1,24 +1,25 @@
 package com.wanggaowan.rndevtools.actions
 
-import com.intellij.codeInsight.actions.ReformatCodeProcessor
 import com.intellij.lang.ecmascript6.psi.ES6ExportDefaultAssignment
 import com.intellij.lang.ecmascript6.psi.ES6Property
 import com.intellij.lang.javascript.psi.*
 import com.intellij.lang.javascript.psi.impl.JSChangeUtil
 import com.intellij.lang.javascript.psi.impl.JSObjectLiteralExpressionImpl
 import com.intellij.lang.javascript.psi.impl.JSPsiElementFactory
-import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl
 import com.wanggaowan.rndevtools.entity.Property
-import com.wanggaowan.rndevtools.utils.NotificationUtils
+import com.wanggaowan.rndevtools.utils.msg.MessageUtils
 
 
 private val Log = logger<CreateStringsResourceAction>()
@@ -32,19 +33,20 @@ class CreateStringsResourceAction : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         val virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+        var defaultFile: VirtualFile? = null
+        for (child in virtualFile.children) {
+            if ("default.ts" == child.name || "default.js" == child.name) {
+                defaultFile = child
+                break
+            }
+        }
+
+        if (defaultFile == null) {
+            MessageUtils.show("目录下不存在 default.ts 或 default.js 文件", MessageType.ERROR, project = project)
+            return
+        }
+
         WriteCommandAction.runWriteCommandAction(event.project) {
-            var defaultFile: VirtualFile? = null
-            for (child in virtualFile.children) {
-                if ("default.ts" == child.name || "default.js" == child.name) {
-                    defaultFile = child
-                    break
-                }
-            }
-
-            if (defaultFile == null) {
-                NotificationUtils.showBalloonMsg(project, "目录下不存在default.ts或default.js文件", NotificationType.ERROR)
-            }
-
             val rootElement = getDefaultFileRootElement(project, defaultFile) ?: return@runWriteCommandAction
             createStrFile(project, virtualFile, rootElement)
         }
@@ -213,7 +215,8 @@ class CreateStringsResourceAction : AnAction() {
         if (value == null) {
             val content = "\n${addProperty.key}: '${addProperty.value}'"
             val astNode = JSChangeUtil.createObjectLiteralPropertyFromText(content, parentElement)
-            parentElement.addBefore(astNode, parentElement.lastChild) // 在结尾新增一个英文逗号","
+            parentElement.addBefore(astNode, parentElement.lastChild)
+            // 在结尾新增一个英文逗号","
             val child2 = JSChangeUtil.createCommaPsiElement(parentElement)
             parentElement.addBefore(child2, parentElement.lastChild)
         }
@@ -225,8 +228,7 @@ class CreateStringsResourceAction : AnAction() {
      * @param project     项目对象
      * @param psiFile 需要格式化文件
      */
-    private fun reformatFile(project: Project, psiFile: PsiFile) { // 尝试对文件进行格式化处理
-        val processor = ReformatCodeProcessor(project, psiFile, null, false) // 执行处理
-        processor.run()
+    private fun reformatFile(project: Project, psiFile: PsiFile) {
+        CodeStyleManagerImpl(project).reformatText(psiFile, mutableListOf(TextRange(0, psiFile.textLength)))
     }
 }

@@ -3,7 +3,6 @@ package com.wanggaowan.rndevtools.ui
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import com.intellij.codeInsight.actions.ReformatCodeProcessor
 import com.intellij.lang.javascript.psi.JSBlockStatement
 import com.intellij.lang.javascript.psi.ecma6.TypeScriptClass
 import com.intellij.lang.javascript.psi.ecma6.TypeScriptInterface
@@ -13,12 +12,14 @@ import com.intellij.lang.javascript.psi.impl.JSPsiElementFactory
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.wm.WindowManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl
 import com.intellij.psi.util.PsiTreeUtil
 import com.wanggaowan.rndevtools.utils.StringUtils
-import com.wanggaowan.rndevtools.utils.Toast
+import com.wanggaowan.rndevtools.utils.msg.Toast
 import java.awt.Point
 import javax.swing.*
 
@@ -134,13 +135,13 @@ class JsonToTsDialog(
         mBtOk.addActionListener {
             val objName = mCreateObjectName.text
             if (objName.isNullOrEmpty()) {
-                Toast.show(mRootPanel, MessageType.ERROR, "请输入要创建的对象名称")
+                Toast.show(mCreateObjectName, MessageType.ERROR, "请输入要创建的对象名称")
                 return@addActionListener
             }
 
             val jsonStr = mEtJsonContent.text
             if (jsonStr.isNullOrEmpty()) {
-                Toast.show(mRootPanel, MessageType.ERROR, "请输入JSON内容")
+                Toast.show(mEtJsonContent, MessageType.ERROR, "请输入JSON内容")
                 return@addActionListener
             }
 
@@ -149,7 +150,7 @@ class JsonToTsDialog(
                 jsonObject = Gson().fromJson(jsonStr, JsonObject::class.java)
                 isVisible = false
             } catch (e: Exception) {
-                Toast.show(mRootPanel, MessageType.ERROR, "JSON数据格式不正确")
+                Toast.show(mEtJsonContent, MessageType.ERROR, "JSON数据格式不正确")
                 return@addActionListener
             }
 
@@ -382,8 +383,7 @@ class JsonToTsDialog(
      * @param project     项目对象
      * @param psiFile 需要格式化文件
      */
-    private fun reformatFile(project: Project, psiFile: PsiFile) { // 尝试对文件进行格式化处理
-        val processor = ReformatCodeProcessor(project, psiFile, null, false) // 执行处理
-        processor.run()
+    private fun reformatFile(project: Project, psiFile: PsiFile) {
+        CodeStyleManagerImpl(project).reformatText(psiFile, mutableListOf(TextRange(0, psiFile.textLength)))
     }
 }

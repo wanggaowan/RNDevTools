@@ -1,6 +1,5 @@
 package com.wanggaowan.rndevtools.actions
 
-import com.intellij.codeInsight.actions.ReformatCodeProcessor
 import com.intellij.lang.ecmascript6.psi.ES6ExportDefaultAssignment
 import com.intellij.lang.javascript.psi.JSElement
 import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
@@ -14,9 +13,11 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl
 import com.wanggaowan.rndevtools.entity.Property
 
 private val Log = logger<CreateImagesResourceAction>()
@@ -42,9 +43,12 @@ class CreateImagesResourceAction : AnAction() {
 
     private fun isImage(url: String): Boolean {
         val lower = url.lowercase()
-        return lower.endsWith("png") || lower.endsWith("jpg") || lower.endsWith("jpeg") || lower.endsWith("webp") || lower.endsWith(
-            "gif"
-        ) || lower.endsWith("svg")
+        return lower.endsWith("png")
+            || lower.endsWith("jpg")
+            || lower.endsWith("jpeg")
+            || lower.endsWith("webp")
+            || lower.endsWith("gif")
+            || lower.endsWith("svg")
     }
 
     /**
@@ -119,11 +123,9 @@ class CreateImagesResourceAction : AnAction() {
         }
     }
 
-    private fun insertOrRemoveImagesContent(
-        parentElement: JSElement, changeProperty: Set<Property>
-    ) {
-
-        parentElement.children.forEach { // 移除不存在的数据
+    private fun insertOrRemoveImagesContent(parentElement: JSElement, changeProperty: Set<Property>) {
+        // 移除不存在的数据
+        parentElement.children.forEach {
             if (it is JSProperty) {
                 val name = it.name
                 var exist = false
@@ -146,14 +148,13 @@ class CreateImagesResourceAction : AnAction() {
         }
     }
 
-    private fun addJSProperty(
-        parentElement: JSElement, addProperty: Property
-    ) {
+    private fun addJSProperty(parentElement: JSElement, addProperty: Property) {
         val value = parentElement.children.find { child -> child is JSProperty && child.name == addProperty.key }
         if (value == null) {
             val content = "\n${addProperty.key}: require('./${addProperty.value}')"
             val astNode = JSChangeUtil.createObjectLiteralPropertyFromText(content, parentElement)
-            parentElement.addBefore(astNode, parentElement.lastChild) // 在结尾新增一个英文逗号","
+            parentElement.addBefore(astNode, parentElement.lastChild)
+            // 在结尾新增一个英文逗号","
             val child2 = JSChangeUtil.createCommaPsiElement(parentElement)
             parentElement.addBefore(child2, parentElement.lastChild)
         }
@@ -182,7 +183,10 @@ class CreateImagesResourceAction : AnAction() {
     }
 
     private fun getPropertyValue(value: String): String {
-        return value.replace("@1x", "").replace("@2x", "").replace("@3x", "").replace("_android", "")
+        return value.replace("@1x", "")
+            .replace("@2x", "")
+            .replace("@3x", "")
+            .replace("_android", "")
             .replace("_ios", "")
     }
 
@@ -192,8 +196,7 @@ class CreateImagesResourceAction : AnAction() {
      * @param project     项目对象
      * @param psiFile 需要格式化文件
      */
-    private fun reformatFile(project: Project, psiFile: PsiFile) { // 尝试对文件进行格式化处理
-        val processor = ReformatCodeProcessor(project, psiFile, null, false) // 执行处理
-        processor.run()
+    private fun reformatFile(project: Project, psiFile: PsiFile) {
+        CodeStyleManagerImpl(project).reformatText(psiFile, mutableListOf(TextRange(0, psiFile.textLength)))
     }
 }

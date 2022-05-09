@@ -39,7 +39,7 @@ class I18nGoToDeclarationHandler : GotoDeclarationHandler {
                 } else {
                     sourceElement
                 }
-            } else sourceElement.parent.reference?.resolve()
+            } else sourceElement.parent?.reference?.resolve()
 
         if (strProperty !is JSProperty && strProperty !is LeafPsiElement) {
             return null
