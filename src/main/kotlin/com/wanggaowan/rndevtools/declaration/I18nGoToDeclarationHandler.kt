@@ -24,43 +24,50 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 class I18nGoToDeclarationHandler : GotoDeclarationHandler {
 
     override fun getGotoDeclarationTargets(
-        sourceElement: PsiElement?,
-        offset: Int,
-        editor: Editor?
+        sourceElement: PsiElement?, offset: Int, editor: Editor?
     ): Array<PsiElement>? {
-        if (sourceElement == null) {
+        if (sourceElement == null || sourceElement !is LeafPsiElement) {
             return null
         }
 
-        val strProperty =
-            if (sourceElement is LeafPsiElement) {
-                if (sourceElement.parent is JSReferenceExpression) {
-                    sourceElement.parent.reference?.resolve()
-                } else {
-                    sourceElement
-                }
-            } else sourceElement.parent?.reference?.resolve()
+        val elementType = sourceElement.elementType.toString()
+        if (elementType != "JS:IDENTIFIER" && elementType != "JS:STRING_LITERAL") {
+            return null
+        }
 
-        if (strProperty !is JSProperty && strProperty !is LeafPsiElement) {
+        var parent = sourceElement.parent
+        val strProperty = if (parent is JSReferenceExpression) { // 解析格式：str.test
+            val text = sourceElement.text
+            if (parent.textMatches("str.${text}")) {
+                val reference = parent.reference?.resolve()
+                if (reference is JSProperty) {
+                    reference
+                } else null
+            } else null
+        } else { // 解析的格式如： test: '测试数据'
+            // 此种格式仅解析str中的文本
+            parent = parent?.parent
+            if (parent is JSProperty) {
+                parent
+            } else null
+        }
+
+        if (strProperty == null) {
             return null
         }
 
         // 获取节点文本
-        val value =
-            (if (strProperty is LeafPsiElement) strProperty.text else (strProperty as JSProperty).value?.text)
-                ?.replace(
-                    "'",
-                    ""
-                )?.replace(
-                    "\"",
-                    ""
-                )
+        val value = strProperty.value?.text?.replace(
+            "'", ""
+        )?.replace(
+            "\"", ""
+        )
 
         if (value.isNullOrEmpty()) {
             return null
         }
 
-        val dirPath = getAttachFileDirPath(strProperty) ?: return null
+        val dirPath = getAttachFileDirPath(strProperty, elementType == "JS:STRING_LITERAL") ?: return null
         val dirFile = VirtualFileManager.getInstance().findFileByUrl("file://${dirPath}") ?: return null
         if (!dirFile.isDirectory) {
             return null
@@ -76,19 +83,25 @@ class I18nGoToDeclarationHandler : GotoDeclarationHandler {
 
     /**
      * 获取节点所处文件所在目录的路径
+     * @param isStringLiteral 是否是纯文本数据，类似： '文本数据'
      */
-    private tailrec fun getAttachFileDirPath(element: PsiElement?): String? {
+    private tailrec fun getAttachFileDirPath(element: PsiElement?, isStringLiteral: Boolean): String? {
         return when (element) {
             null -> {
                 null
             }
 
             is PsiFile -> {
-                element.virtualFile?.path?.replace("/${element.name}", "")
+                val name = element.name
+                if (isStringLiteral) {
+                    if (name == "str.ts" || name == "str.js") {
+                        element.virtualFile?.path?.replace("/$name", "")
+                    } else null
+                } else element.virtualFile?.path?.replace("/${element.name}", "")
             }
 
             else -> {
-                getAttachFileDirPath(element.parent)
+                getAttachFileDirPath(element.parent, isStringLiteral)
             }
         }
     }
