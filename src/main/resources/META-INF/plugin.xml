@@ -13,10 +13,17 @@
       <li>提供I18n文本实时预览文档</li>
       <li>i18n文本引用点击快速跳转定位处</li>
       <li>json文件转化为TypeScript对象</li>
+      <li>图片资源文件预览窗口</li>
     </ol>
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>1.2</p>
+    <ul>
+      <li>文件右键菜单增加生成图片资源引用文件/生成I18n文本资源引用文件功能</li>
+      <li>增加RN图片资源文件预览窗口，方便查找需要的图片</li>
+    </ul>
+
     <p>1.1</p>
     <ul>
       <li>修复i18n文本导航导致其它导航卡顿Bug</li>
@@ -44,29 +51,37 @@
         <lang.documentationProvider language="JavaScript"
                                     implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
         <notificationGroup displayType="BALLOON" id="com.wanggaowan.rndevtools.balloon" isLogByDefault="false"/>
+
+        <toolWindow id="Resource Manager"
+                    factoryClass="com.wanggaowan.rndevtools.toolwindow.ResourcePreviewToolWindowFactory"
+                    icon="/icons/default_icon.svg"/>
     </extensions>
 
     <actions>
         <group id="com.wanggaowan.rndevtools.actions.CreateResGroupAction"
                class="com.wanggaowan.rndevtools.actions.CreateResGroupAction"
-               icon="SdkIcons.Sdk_default_icon"
+               icon="SdkIcons.defaultIcon"
                text="RNDevTools"
                popup="true">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
             <action id="com.wanggaowan.rndevtools.actions.CreateImagesResourceAction"
                     class="com.wanggaowan.rndevtools.actions.CreateImagesResourceAction"
                     text="生成RN图片资源引用"
-                    icon="SdkIcons.Sdk_default_icon">
+                    icon="SdkIcons.defaultIcon">
             </action>
             <action id="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction"
                     class="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction"
                     text="生成RN文本资源引用"
-                    icon="SdkIcons.Sdk_default_icon">
+                    icon="SdkIcons.defaultIcon">
             </action>
         </group>
         <action id="com.wanggaowan.rndevtools.actions.JsonToTsAction"
                 class="com.wanggaowan.rndevtools.actions.JsonToTsAction" text="JsonToTypeScript"
                 description="json文件转化为ts的class，interface，type">
+            <add-to-group group-id="GenerateGroup" anchor="last"/>
+        </action>
+        <action id="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction2"
+                class="com.wanggaowan.rndevtools.actions.CreateStringsResourceAction2" text="生成RN文本资源引用">
             <add-to-group group-id="GenerateGroup" anchor="last"/>
         </action>
     </actions>

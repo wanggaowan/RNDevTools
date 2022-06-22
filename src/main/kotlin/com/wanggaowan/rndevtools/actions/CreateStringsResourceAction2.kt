@@ -3,17 +3,13 @@ package com.wanggaowan.rndevtools.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.diagnostic.logger
-
-
-private val Log = logger<CreateStringsResourceAction>()
 
 /**
- * 右键目录/文件生成文本资源引用
+ * 右键文档，在弹窗菜单生成一栏 生成文本资源引用
  *
  * @author Created by wanggaowan on 2022/5/1 21:52
  */
-class CreateStringsResourceAction : AnAction() {
+class CreateStringsResourceAction2 : AnAction() {
     override fun actionPerformed(event: AnActionEvent) {
         val project = event.project ?: return
         var virtualFile = event.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
@@ -29,18 +25,7 @@ class CreateStringsResourceAction : AnAction() {
 
     override fun update(e: AnActionEvent) {
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        if (virtualFile == null) {
-            e.presentation.isVisible = false
-            return
-        }
-
-        if (virtualFile.isDirectory) {
-            e.presentation.isVisible = true
-            return
-        }
-
-        val parent = virtualFile.parent
-        if (parent != null && parent.isDirectory) {
+        if (virtualFile != null && !virtualFile.isDirectory) {
             e.presentation.isVisible = true
             return
         }

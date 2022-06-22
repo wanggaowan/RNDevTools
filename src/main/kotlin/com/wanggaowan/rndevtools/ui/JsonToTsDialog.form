@@ -140,6 +140,7 @@
                   </grid>
                 </constraints>
                 <properties>
+                  <horizontalTextPosition value="11"/>
                   <margin top="0" left="0" bottom="0" right="0"/>
                   <text value="Cancel"/>
                 </properties>
@@ -168,7 +169,7 @@
                 </constraints>
                 <properties>
                   <selected value="true"/>
-                  <text value="json值生成文档"/>
+                  <text value="json value 生成注释文档"/>
                 </properties>
               </component>
             </children>

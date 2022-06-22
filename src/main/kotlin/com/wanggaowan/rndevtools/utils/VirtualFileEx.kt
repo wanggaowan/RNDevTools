@@ -4,7 +4,7 @@
  * Created by wanggaowan on 2022/4/16 20:23
  */
 
-package com.wanggaowan.rndevtools
+package com.wanggaowan.rndevtools.utils
 
 import com.intellij.openapi.vfs.VirtualFile
 

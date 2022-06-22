@@ -12,6 +12,6 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 class CreateResGroupAction : DefaultActionGroup() {
     override fun update(e: AnActionEvent) {
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        e.presentation.isVisible = virtualFile != null && virtualFile.isDirectory
+        e.presentation.isVisible = virtualFile != null
     }
 }

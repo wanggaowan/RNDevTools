@@ -6,7 +6,7 @@ plugins {
 
 group = "com.wanggaowan"
 // version = "1.0-SNAPSHOT"
-version = "1.1"
+version = "1.2"
 
 repositories {
     mavenCentral()
@@ -14,7 +14,7 @@ repositories {
 
 // Configure Gradle IntelliJ Plugin - read more: https://github.com/JetBrains/gradle-intellij-plugin
 intellij {
-    version.set("2021.2")
+    version.set("2021.3")
     type.set("IU") // Target IDE Platform
 
     plugins.set(listOf("JavaScript"))
