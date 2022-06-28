@@ -14,10 +14,18 @@
       <li>i18n文本引用点击快速跳转定位处</li>
       <li>json文件转化为TypeScript对象</li>
       <li>图片资源文件预览窗口</li>
+      <li>项目结构增加RN项目专属分类，仅展示RN开发重点关注文件</li>
     </ol>
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>1.3</p>
+    <ul>
+      <li>项目结构增加RN项目专属分类，仅展示RN开发重点关注文件</li>
+      <li>图片预览UI调整，增加展示预览图片的根目录路径</li>
+      <li>调整图片预览搜索逻辑，仅匹配图片名称，而不是全路径匹配</li>
+    </ul>
+
     <p>1.2</p>
     <ul>
       <li>文件右键菜单增加生成图片资源引用文件/生成I18n文本资源引用文件功能</li>
@@ -54,7 +62,10 @@
 
         <toolWindow id="Resource Manager"
                     factoryClass="com.wanggaowan.rndevtools.toolwindow.ResourcePreviewToolWindowFactory"
-                    icon="/icons/default_icon.svg"/>
+                    icon="/icons/default_icon_grey.svg"/>
+
+        <projectViewPane implementation="com.wanggaowan.rndevtools.projectviewpane.RNProjectViewPane"
+                         id="React Native Pane"/>
     </extensions>
 
     <actions>

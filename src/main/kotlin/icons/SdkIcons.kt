@@ -14,6 +14,9 @@ object SdkIcons {
     @JvmField
     val defaultIcon: Icon = IconLoader.getIcon("/icons/default_icon.svg", SdkIcons::class.java)
 
+    @JvmField
+    val defaultIconGrey: Icon = IconLoader.getIcon("/icons/default_icon_grey.svg", SdkIcons::class.java)
+
     @JvmStatic
     val search: Icon
         get() {

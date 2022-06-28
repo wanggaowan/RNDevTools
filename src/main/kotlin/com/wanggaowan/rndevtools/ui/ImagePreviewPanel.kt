@@ -14,6 +14,7 @@ import com.intellij.ui.ColorUtil
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
+import com.wanggaowan.rndevtools.ui.listener.SimpleComponentListener
 import icons.SdkIcons
 import java.awt.BorderLayout
 import java.awt.Color
@@ -21,10 +22,7 @@ import java.awt.Dimension
 import java.awt.FlowLayout
 import java.awt.event.*
 import java.io.File
-import javax.swing.BorderFactory
-import javax.swing.JLabel
-import javax.swing.JPanel
-import javax.swing.JTextField
+import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
@@ -36,6 +34,10 @@ private object Config {
 
     private val MOUSE_ENTER_COLOR = Color(223, 223, 223)
     private val MOUSE_ENTER_COLOR_DARK = Color(76, 80, 82)
+
+    // 用于透明Icon使用
+    private val MOUSE_ENTER_COLOR2 = Color(191, 197, 200)
+    private val MOUSE_ENTER_COLOR_DARK2 = Color(98, 106, 110)
 
     private val MOUSE_PRESS_COLOR = Color(207, 207, 207)
     private val MOUSE_PRESS_COLOR_DARK = Color(92, 97, 100)
@@ -64,6 +66,14 @@ private object Config {
         }
 
         return MOUSE_ENTER_COLOR
+    }
+
+    fun getMouseEnterColor2(): Color {
+        if (isDarkTheme) {
+            return MOUSE_ENTER_COLOR_DARK2
+        }
+
+        return MOUSE_ENTER_COLOR2
     }
 
     fun getMousePressColor(): Color {
@@ -119,6 +129,7 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
     private lateinit var mListLayoutBtn: ImageButton
     private lateinit var mGridLayoutBtn: ImageButton
     private lateinit var mRefreshBtn: ImageButton
+    private lateinit var mPathLabel: JLabel
 
     // 网格展示模式时图片布局宽度
     private val mGridImageLayoutWidth = 160
@@ -192,7 +203,7 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
     private fun initSearchLayout(parent: JPanel) {
         // 搜索一栏根布局
         mSearchPanel = JPanel()
-        mSearchPanel.layout = BorderLayout()
+        mSearchPanel.layout = BoxLayout(mSearchPanel, BoxLayout.X_AXIS)
         mSearchPanel.border = BorderFactory.createCompoundBorder(
             BorderFactory.createCompoundBorder(
                 LineBorder(Config.getLineColor(), 0, 0, 1, 0),
@@ -203,13 +214,16 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
 
         mSearchBtn = ImageButton()
         mSearchBtn.preferredSize = Dimension(30, 30)
+        mSearchBtn.minimumSize = mSearchBtn.preferredSize
+        mSearchBtn.maximumSize = mSearchBtn.preferredSize
         mSearchBtn.icon = SdkIcons.search
         mSearchBtn.background = Config.TRANSPARENT
         mSearchBtn.isOpaque = true
-        mSearchPanel.add(mSearchBtn, BorderLayout.WEST)
+        mSearchPanel.add(mSearchBtn)
 
         mSearchTextField = JTextField()
-        mSearchTextField.preferredSize = Dimension(200, 30)
+        mSearchTextField.preferredSize = Dimension(100, 30)
+        mSearchTextField.minimumSize = Dimension(100, 30)
         mSearchTextField.background = Config.TRANSPARENT
         mSearchTextField.border = BorderFactory.createEmptyBorder()
         mSearchTextField.isOpaque = true
@@ -233,10 +247,12 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
             }
         })
 
-        mSearchPanel.add(mSearchTextField, BorderLayout.CENTER)
+        mSearchPanel.add(mSearchTextField)
 
         mClearBtn = ImageButton()
         mClearBtn.preferredSize = Dimension(30, 30)
+        mClearBtn.minimumSize = mSearchBtn.preferredSize
+        mClearBtn.maximumSize = mSearchBtn.preferredSize
         mClearBtn.icon = SdkIcons.close
         mClearBtn.background = null
         mClearBtn.isVisible = false
@@ -245,7 +261,7 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
         mClearBtn.isOpaque = true
         mClearBtn.addMouseListener(object : MouseAdapter() {
             override fun mouseEntered(e: MouseEvent?) {
-                mClearBtn.background = Config.getMouseEnterColor()
+                mClearBtn.background = Config.getMouseEnterColor2()
                 mClearBtn.icon = SdkIcons.closeFocus
             }
 
@@ -263,7 +279,7 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
             }
         })
 
-        mSearchPanel.add(mClearBtn, BorderLayout.EAST)
+        mSearchPanel.add(mClearBtn)
 
         // 文本改变监听
         mSearchTextField.document.addDocumentListener(object : DocumentListener {
@@ -294,8 +310,10 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
     private fun initBottomLayout() {
         // 底部按钮面板
         val bottomPanel = JPanel()
-        bottomPanel.layout = BorderLayout()
-        bottomPanel.border = BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        bottomPanel.layout = BorderLayout().apply {
+            hgap = 0
+        }
+        bottomPanel.border = BorderFactory.createEmptyBorder(5, 0, 5, 0)
         add(bottomPanel, BorderLayout.SOUTH)
 
         // 底部靠右的布局面板
@@ -431,18 +449,33 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
                 setNewImages()
             }
         })
+
+        // 增加图片预览的根路径显示
+        val path = mRootFilePath ?: ""
+        val basePath = project.basePath ?: ""
+        mPathLabel = JLabel(path.replace(basePath, ""))
+        mPathLabel.border = BorderFactory.createCompoundBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(2, 2, 2, 2),
+                LineBorder(Config.getInputUnFocusColor(), 1, true)
+            ),
+            BorderFactory.createEmptyBorder(0, 4, 0, 4)
+        )
+        bottomPanel.add(mPathLabel, BorderLayout.CENTER)
     }
 
     /**
      * 注册窗口尺寸改变监听
      */
     private fun registerSizeChange() {
-        addComponentListener(object : ComponentListener {
-            override fun componentResized(p0: ComponentEvent) {
+        addComponentListener(object : SimpleComponentListener() {
+            override fun componentResized(p0: ComponentEvent?) {
                 if (mLayoutMode == 0) {
                     for (component in mImagePanel.components) {
                         component.preferredSize = Dimension(width, 100)
                     }
+                    val totalHeight = mShowImageCount * 100 + 100
+                    mImagePanel.preferredSize = Dimension(width, totalHeight)
                     mImagePanel.updateUI()
                     return
                 }
@@ -457,13 +490,6 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
                 val totalHeight = rows * itemHeight + 100
                 mImagePanel.preferredSize = Dimension(width, totalHeight)
             }
-
-            override fun componentMoved(p0: ComponentEvent?) {}
-
-            override fun componentShown(p0: ComponentEvent?) {}
-
-            override fun componentHidden(p0: ComponentEvent?) {}
-
         })
     }
 
@@ -499,8 +525,16 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
         val searchStr = mSearchTextField.text.trim()
         if (searchStr.isNotEmpty()) {
             val newData = mutableSetOf<String>()
-            for (path in data) {
-                if (path.contains(searchStr)) {
+            for (path: String in data) {
+                var name = path
+                var indexOf = path.lastIndexOf("/")
+                name = name.substring(indexOf + 1)
+                indexOf = name.indexOf(".")
+                if (indexOf != -1) {
+                    name = name.substring(0, indexOf)
+                }
+
+                if (name.contains(searchStr)) {
                     newData.add(path)
                 }
             }
@@ -717,6 +751,14 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
         }
 
         mRefreshBtn.icon = SdkIcons.refresh
+
+        mPathLabel.border = BorderFactory.createCompoundBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createEmptyBorder(2, 2, 2, 2),
+                LineBorder(Config.getInputUnFocusColor(), 1, true)
+            ),
+            BorderFactory.createEmptyBorder(0, 4, 0, 4)
+        )
 
         mScrollPane.border = LineBorder(Config.getLineColor(), 0, 0, 1, 0)
         setNewImages()

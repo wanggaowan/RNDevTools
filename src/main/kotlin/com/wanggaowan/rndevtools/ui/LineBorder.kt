@@ -54,20 +54,21 @@ class LineBorder constructor(
 
     override fun paintBorder(component: Component?, g: Graphics?, x: Int, y: Int, width: Int, height: Int) {
         if (g is Graphics2D) {
+            // 消除画图锯齿
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+
             val oldColor = g.color
             g.color = color
             val outer: Any
             val inner: Any
             if (roundedCorners) {
-                val offs: Float = this.topWidth.toFloat()
-                val arc: Float = 0.2f * this.topWidth
                 outer = RoundRectangle2D.Float(
                     x.toFloat(),
                     y.toFloat(),
                     width.toFloat(),
                     height.toFloat(),
-                    offs,
-                    offs,
+                    2f,
+                    2f,
                 )
 
                 inner = RoundRectangle2D.Float(
@@ -75,8 +76,8 @@ class LineBorder constructor(
                     (y + topWidth).toFloat(),
                     (width - leftWidth - rightWidth).toFloat(),
                     (height - topWidth - bottomWidth).toFloat(),
-                    arc,
-                    arc,
+                    2f,
+                    2f,
                 )
             } else {
                 outer = Rectangle2D.Float(
