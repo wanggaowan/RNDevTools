@@ -1,6 +1,5 @@
 package com.wanggaowan.rndevtools.declaration
 
-import com.intellij.codeInsight.navigation.actions.GotoDeclarationHandler
 import com.intellij.lang.ecmascript6.psi.ES6ExportDefaultAssignment
 import com.intellij.lang.ecmascript6.psi.ES6Property
 import com.intellij.lang.javascript.psi.JSObjectLiteralExpression
@@ -17,13 +16,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 
 /**
- * i18n文本内容跳转到定义处
+ * 文本资源定位
  *
- * @author Created by wanggaowan on 2022/5/2 12:59
+ * @author Created by wanggaowan on 2022/7/7 14:49
  */
-class I18nGoToDeclarationHandler : GotoDeclarationHandler {
-
-    override fun getGotoDeclarationTargets(
+object I18nGoToDeclarationHandler {
+    fun getGotoDeclarationTargets(
         sourceElement: PsiElement?, offset: Int, editor: Editor?
     ): Array<PsiElement>? {
         if (sourceElement == null || sourceElement !is LeafPsiElement) {
@@ -36,7 +34,8 @@ class I18nGoToDeclarationHandler : GotoDeclarationHandler {
         }
 
         var parent = sourceElement.parent
-        val strProperty = if (parent is JSReferenceExpression) { // 解析格式：str.test
+        val strProperty = if (parent is JSReferenceExpression) {
+            // 解析格式：str.test
             val text = sourceElement.text
             if (parent.textMatches("str.${text}")) {
                 val reference = parent.reference?.resolve()
@@ -44,7 +43,8 @@ class I18nGoToDeclarationHandler : GotoDeclarationHandler {
                     reference
                 } else null
             } else null
-        } else { // 解析的格式如： test: '测试数据'
+        } else {
+            // 解析的格式如： test: '测试数据'
             // 此种格式仅解析str中的文本
             parent = parent?.parent
             if (parent is JSProperty) {

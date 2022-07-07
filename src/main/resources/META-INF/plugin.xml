@@ -11,7 +11,8 @@
       <li>生成I18n文本资源引用文件</li>
       <li>提供图片资源实时预览文档</li>
       <li>提供I18n文本实时预览文档</li>
-      <li>i18n文本引用点击快速跳转定位处</li>
+      <li>i18n文本点击快速跳转定位处</li>
+      <li>require的图片点击打开图片文件</li>
       <li>json文件转化为TypeScript对象</li>
       <li>图片资源文件预览窗口</li>
       <li>项目结构增加RN项目专属分类，仅展示RN开发重点关注文件</li>
@@ -19,6 +20,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>1.4</p>
+    <ul>
+      <li>增加require方法设置的图片点击打开图片文件功能</li>
+    </ul>
+
     <p>1.3</p>
     <ul>
       <li>项目结构增加RN项目专属分类，仅展示RN开发重点关注文件</li>
@@ -44,7 +50,7 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!--必须设置order为first，否则2021.3版本之后不会调用I18nGoToDeclarationHandler-->
-        <gotoDeclarationHandler implementation="com.wanggaowan.rndevtools.declaration.I18nGoToDeclarationHandler"
+        <gotoDeclarationHandler implementation="com.wanggaowan.rndevtools.declaration.RNGoToDeclarationHandler"
                                 order="first"/>
         <lang.documentationProvider language="TypeScript"
                                     implementationClass="com.wanggaowan.rndevtools.description.ImageDocumentDescriptionProvider"/>
@@ -58,6 +64,7 @@
                                     implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
         <lang.documentationProvider language="JavaScript"
                                     implementationClass="com.wanggaowan.rndevtools.description.I18nDocumentDescriptionProvider"/>
+
         <notificationGroup displayType="BALLOON" id="com.wanggaowan.rndevtools.balloon" isLogByDefault="false"/>
 
         <toolWindow id="Resource Manager"
