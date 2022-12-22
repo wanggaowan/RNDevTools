@@ -20,6 +20,11 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>1.5</p>
+    <ul>
+      <li>兼容IDE新版本</li>
+    </ul>
+
     <p>1.4</p>
     <ul>
       <li>增加require方法设置的图片点击打开图片文件功能</li>

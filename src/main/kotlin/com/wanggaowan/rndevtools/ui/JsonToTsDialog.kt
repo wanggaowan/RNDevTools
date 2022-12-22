@@ -335,7 +335,6 @@ class JsonToTsDialog(
         } else if (jsonElement.isNumber) {
             "$key?: number | null"
         } else {
-            jsonElement.asString
             "$key?: string | null"
         }
 
@@ -360,7 +359,6 @@ class JsonToTsDialog(
 
     private fun addTsFieldForObjType(key: String, typeName: String, isArray: Boolean, parentElement: PsiElement) {
         var content = if ("any" == typeName) {
-            mCreateObjectType.selectedIndex
             "$key?: any"
         } else {
             val type = if (isArray) "$typeName[]" else typeName
