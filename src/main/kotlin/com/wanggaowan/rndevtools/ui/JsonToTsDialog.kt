@@ -8,8 +8,12 @@ import com.intellij.lang.javascript.psi.ecma6.TypeScriptClass
 import com.intellij.lang.javascript.psi.ecma6.TypeScriptInterface
 import com.intellij.lang.javascript.psi.ecma6.TypeScriptObjectType
 import com.intellij.lang.javascript.psi.ecma6.TypeScriptTypeAlias
+import com.intellij.lang.javascript.psi.impl.JSChangeUtil
 import com.intellij.lang.javascript.psi.impl.JSPsiElementFactory
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.progress.ProgressIndicator
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.MessageType
 import com.intellij.openapi.util.TextRange
@@ -64,6 +68,7 @@ class JsonToTsDialog(
     }
 
     private fun initData() {
+        mEtJsonContent.requestFocus()
         if (selectElement == null) {
             mCreateObjectName.isEnabled = true
             mCreateObjectType.isEnabled = true
@@ -154,60 +159,74 @@ class JsonToTsDialog(
                 return@addActionListener
             }
 
-
-            WriteCommandAction.runWriteCommandAction(project) {
-                if (mRootElement == null) {
-                    val element = createParentElement(objName, psiFile)
-                    val lastChild = psiFile.lastChild
-                    findParentElement(element)?.let {
-                        createRnObjectOnJsonObject(jsonObject, it)
-                    }
-                    psiFile.addAfter(element, lastChild)
-                } else {
-                    mRootElement?.let {
-                        if (it is TypeScriptClass) {
-                            createRnObjectOnJsonObject(jsonObject, it)
-                            return@let
-                        }
-
-                        val element = findParentElement(it)
-                        if (element == null) {
-                            val block = JSPsiElementFactory.createJSStatement("{}", it)
-                            createRnObjectOnJsonObject(jsonObject, block)
-                            it.addAfter(block, it.lastChild)
+            ProgressManager.getInstance().run(object : Task.Backgroundable(project, "TS Format") {
+                override fun run(progressIndicator: ProgressIndicator) {
+                    progressIndicator.isIndeterminate = true
+                    WriteCommandAction.runWriteCommandAction(project) {
+                        if (mRootElement == null) {
+                            val element = createParentElement(objName, psiFile, null)
+                            val lastChild = psiFile.lastChild
+                            findParentElement(element)?.let {
+                                createRnObjectOnJsonObject(jsonObject, it)
+                            }
+                            psiFile.addAfter(element, lastChild)
                         } else {
-                            createRnObjectOnJsonObject(jsonObject, element)
+                            mRootElement?.let {
+                                if (it is TypeScriptClass) {
+                                    createRnObjectOnJsonObject(jsonObject, it)
+                                    return@let
+                                }
+
+                                val element = findParentElement(it)
+                                if (element == null) {
+                                    val block = JSPsiElementFactory.createJSStatement("{}", it)
+                                    createRnObjectOnJsonObject(jsonObject, block)
+                                    it.addAfter(block, it.lastChild)
+                                } else {
+                                    createRnObjectOnJsonObject(jsonObject, element)
+                                }
+                            }
                         }
+                        reformatFile(project, psiFile)
+                        progressIndicator.isIndeterminate = false
+                        progressIndicator.fraction = 1.0
                     }
                 }
-                reformatFile(project, psiFile)
-            }
+            })
         }
     }
 
     /**
      * 创建将json属性新增到rn对象的父属性
      */
-    private fun createParentElement(name: String, parentElement: PsiElement): PsiElement {
+    private fun createParentElement(name: String, parentElement: PsiElement, doc: String?): PsiElement {
         // 此处创建的对象非标准的TypeScriptClass，TypeScriptInterface，TypeScriptTypeAlias
         // findParentElement中查找此处创建的JSBlockStatement对象，如果是标准对象，TypeScriptClass根节点则是自己本身
         // TypeScriptInterface，TypeScriptTypeAlias都是TypeScriptObjectType
         val suffix = mObjSuffix.text.trim()
         when (mCreateObjectType.selectedIndex) {
             0 -> {
-                val element = JSPsiElementFactory.createJSClass("class ${name}${suffix} ", parentElement)
+                val content = if (doc.isNullOrEmpty() || !mCbCreateDoc.isSelected) "class ${name}${suffix} "
+                else "/**\n* $doc\n*/\nclass ${name}${suffix} "
+                val element = JSPsiElementFactory.createJSClass(content, parentElement)
                 val block = JSPsiElementFactory.createJSStatement("{}", element)
                 element.addAfter(block, element.lastChild)
                 return element
             }
+
             1 -> {
-                val element = JSPsiElementFactory.createJSClass("interface ${name}${suffix} ", parentElement)
+                val content = if (doc.isNullOrEmpty() || !mCbCreateDoc.isSelected) "interface ${name}${suffix} "
+                else "/**\n* $doc\n*/\ninterface ${name}${suffix} "
+                val element = JSPsiElementFactory.createJSClass(content, parentElement)
                 val block = JSPsiElementFactory.createJSStatement("{}", element)
                 element.addAfter(block, element.lastChild)
                 return element
             }
+
             else -> {
-                val element = JSPsiElementFactory.createJSClass("type ${name}${suffix} = ", parentElement)
+                val content = if (doc.isNullOrEmpty() || !mCbCreateDoc.isSelected) "type ${name}${suffix} = "
+                else "/**\n* $doc\n*/\ntype ${name}${suffix} = "
+                val element = JSPsiElementFactory.createJSClass(content, parentElement)
                 val block = JSPsiElementFactory.createJSStatement("{}", element)
                 element.addAfter(block, element.lastChild)
                 return element
@@ -242,21 +261,43 @@ class JsonToTsDialog(
             } else if (obj.isJsonPrimitive) {
                 addTsField(it, obj as JsonPrimitive, parentElement)
             } else if (obj.isJsonObject) {
-                val className = StringUtils.toHumpFormat(it)
-                val suffix = mObjSuffix.text.trim()
-                addTsFieldForObjType(it, className + suffix, false, parentElement)
+                var doc: String? = null
+                val key: String
+                if (it.contains("(") && it.contains(")")) {
+                    // 兼容周卓接口文档JSON, "dataList (产线数据)":[]
+                    val index = it.indexOf("(")
+                    doc = it.substring(index + 1, it.length - 1)
+                    key = it.substring(0, index).replace(" ", "")
+                } else {
+                    key = it
+                }
 
-                val element = createParentElement(className, psiFile)
+                val className = StringUtils.toHumpFormat(key)
+                val suffix = mObjSuffix.text.trim()
+                addTsFieldForObjType(key, className + suffix, false, parentElement, doc)
+
+                val element = createParentElement(className, psiFile, doc)
                 val lastChild = psiFile.lastChild
                 findParentElement(element)?.let { root ->
                     createRnObjectOnJsonObject(obj as JsonObject, root)
                 }
                 psiFile.addAfter(element, lastChild)
             } else if (obj.isJsonArray) {
-                val className = StringUtils.toHumpFormat(it)
+                var doc: String? = null
+                val key: String
+                if (it.contains("(") && it.contains(")")) {
+                    // 兼容周卓接口文档JSON, "dataList (产线数据)":[]
+                    val index = it.indexOf("(")
+                    doc = it.substring(index + 1, it.length - 1)
+                    key = it.substring(0, index).replace(" ", "")
+                } else {
+                    key = it
+                }
+
+                val className = StringUtils.toHumpFormat(key)
                 obj.asJsonArray.let { jsonArray ->
                     if (jsonArray.size() == 0) {
-                        addTsFieldForObjType(it, "any", true, parentElement)
+                        addTsFieldForObjType(key, "any", true, parentElement, doc)
                         return@let
                     }
 
@@ -273,7 +314,7 @@ class JsonToTsDialog(
 
                             if (!isCreateObjChild) {
                                 isCreateObjChild = true
-                                val element = createParentElement(className, psiFile)
+                                val element = createParentElement(className, psiFile, doc)
                                 val lastChild = psiFile.lastChild
                                 findParentElement(element)?.let { root ->
                                     createRnObjectOnJsonObject(child as JsonObject, root)
@@ -304,22 +345,22 @@ class JsonToTsDialog(
                     }
 
                     if (!typeSame) {
-                        addTsFieldForObjType(it, "any", true, parentElement)
+                        addTsFieldForObjType(key, "any", true, parentElement, doc)
                         return@let
                     }
 
                     when (type) {
                         null, "null" -> {
-                            addTsFieldForObjType(it, "any", true, parentElement)
+                            addTsFieldForObjType(key, "any", true, parentElement, doc)
                         }
 
                         "JsonObject" -> {
                             val suffix = mObjSuffix.text.trim()
-                            addTsFieldForObjType(it, className + suffix, true, parentElement)
+                            addTsFieldForObjType(key, className + suffix, true, parentElement, doc)
                         }
 
                         else -> {
-                            addTsFieldForObjType(it, type!!, true, parentElement)
+                            addTsFieldForObjType(key, type!!, true, parentElement, doc)
                         }
                     }
                 }
@@ -339,12 +380,11 @@ class JsonToTsDialog(
         }
 
         content += if (mCreateObjectType.selectedIndex == 0) {
-            " = null;\n"
+            " = null;"
         } else {
-            ";\n"
+            ";"
         }
 
-        val element = JSPsiElementFactory.createJSStatement(content, parentElement)
         if (mCbCreateDoc.isSelected && jsonElement != null) {
             // 不能把doc加到element，虽然此doc文档是属于element的，因为加到element下，doc结束符号'*/'与属性之间不会换行
             // 即使在'*/'后加换行'*/\n'也无效
@@ -353,11 +393,23 @@ class JsonToTsDialog(
                 parentElement
             )
             parentElement.addBefore(doc, parentElement.lastChild)
+            val newLine = JSChangeUtil.createNewLine(parentElement)
+            parentElement.addBefore(newLine, parentElement.lastChild)
         }
+
+        val element = JSPsiElementFactory.createJSStatement(content, parentElement)
         parentElement.addBefore(element, parentElement.lastChild)
+        val newLine = JSChangeUtil.createNewLine(parentElement)
+        parentElement.addBefore(newLine, parentElement.lastChild)
     }
 
-    private fun addTsFieldForObjType(key: String, typeName: String, isArray: Boolean, parentElement: PsiElement) {
+    private fun addTsFieldForObjType(
+        key: String,
+        typeName: String,
+        isArray: Boolean,
+        parentElement: PsiElement,
+        doc: String?
+    ) {
         var content = if ("any" == typeName) {
             "$key?: any"
         } else {
@@ -366,13 +418,24 @@ class JsonToTsDialog(
         }
 
         content += if (mCreateObjectType.selectedIndex == 0) {
-            " = null;\n"
+            " = null;"
         } else {
-            ";\n"
+            ";"
+        }
+
+        if (mCbCreateDoc.isSelected && !doc.isNullOrEmpty()) {
+            // 不能把doc加到element，虽然此doc文档是属于element的，因为加到element下，doc结束符号'*/'与属性之间不会换行
+            // 即使在'*/'后加换行'*/\n'也无效
+            val docElement = JSPsiElementFactory.createJSDocComment("/**\n* $doc\n*/", parentElement)
+            parentElement.addBefore(docElement, parentElement.lastChild)
+            val newLine = JSChangeUtil.createNewLine(parentElement)
+            parentElement.addBefore(newLine, parentElement.lastChild)
         }
 
         val element = JSPsiElementFactory.createJSStatement(content, parentElement)
         parentElement.addBefore(element, parentElement.lastChild)
+        val newLine = JSChangeUtil.createNewLine(parentElement)
+        parentElement.addBefore(newLine, parentElement.lastChild)
     }
 
     /**
