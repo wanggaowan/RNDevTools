@@ -20,9 +20,16 @@
     ]]></description>
 
     <change-notes><![CDATA[
+    <p>1.6</p>
+    <ul>
+      <li>RN项目视图仅RN项目才展示</li>
+    </ul>
+
     <p>1.5</p>
     <ul>
       <li>兼容IDE新版本</li>
+      <li>JSON To TS兼容小周文档对象注释</li>
+      <li>修复JSON To TS生成Type类型时，如果字段有注释则格式错乱Bug</li>
     </ul>
 
     <p>1.4</p>
