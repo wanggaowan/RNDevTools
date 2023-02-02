@@ -14,6 +14,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.wanggaowan.rndevtools.entity.Property
+import com.wanggaowan.rndevtools.utils.XUtils
 
 /**
  * 提供i18n文本文件描述
@@ -26,10 +27,17 @@ class I18nDocumentDescriptionProvider : DocumentationProvider {
     }
 
     override fun generateHoverDoc(element: PsiElement, originalElement: PsiElement?): String? {
+        if (!XUtils.isRNProject(element.project)) {
+            return null
+        }
         return getDoc(element, originalElement)
     }
 
     override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+        if (element != null && !XUtils.isRNProject(element.project)) {
+            return null
+        }
+
         return getDoc(element, originalElement)
     }
 
@@ -207,6 +215,11 @@ class I18nDocumentDescriptionProvider : DocumentationProvider {
     override fun getCustomDocumentationElement(
         editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int
     ): PsiElement? {
+        val project = editor.project
+        if (project != null && !XUtils.isRNProject(project)) {
+            return null
+        }
+
         // 需要特殊显示的节点，需要生成自定义节点返回，然后才会进入generateHoverDoc/generateDoc方法
         val imageElement = getCustomStringDocumentationElement(contextElement)
         if (imageElement != null) {

@@ -22,7 +22,7 @@
     <change-notes><![CDATA[
     <p>1.6</p>
     <ul>
-      <li>RN项目视图仅RN项目才展示</li>
+      <li>仅RN项目才启用此插件所有功能</li>
     </ul>
 
     <p>1.5</p>

@@ -19,6 +19,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.source.codeStyle.CodeStyleManagerImpl
 import com.wanggaowan.rndevtools.entity.Property
+import com.wanggaowan.rndevtools.utils.XUtils
 
 private val Log = logger<CreateImagesResourceAction>()
 
@@ -44,6 +45,12 @@ class CreateImagesResourceAction : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
+        val project = e.project ?: return
+        if (!XUtils.isRNProject(project)) {
+            e.presentation.isVisible = false
+            return
+        }
+
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
         if (virtualFile == null) {
             e.presentation.isVisible = false

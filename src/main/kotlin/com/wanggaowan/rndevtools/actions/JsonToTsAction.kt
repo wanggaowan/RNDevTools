@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.wanggaowan.rndevtools.ui.JsonToTsDialog
+import com.wanggaowan.rndevtools.utils.XUtils
 
 
 /**
@@ -30,8 +31,25 @@ class JsonToTsAction : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
+        val project = e.project ?: return
+        if (!XUtils.isRNProject(project)) {
+            e.presentation.isVisible = false
+            return
+        }
+
         val editor = e.getData(CommonDataKeys.EDITOR)
-        e.presentation.isVisible = editor != null
+        if (editor == null) {
+            e.presentation.isVisible = false
+            return
+        }
+
+        val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
+        if (virtualFile != null && !virtualFile.isDirectory) {
+            e.presentation.isVisible = virtualFile.name.endsWith(".ts")
+            return
+        }
+
+        e.presentation.isVisible = true
     }
 
     /**

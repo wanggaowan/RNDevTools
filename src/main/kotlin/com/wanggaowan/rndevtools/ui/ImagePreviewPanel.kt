@@ -11,7 +11,9 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerListener
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import com.intellij.ui.ColorUtil
+import com.intellij.ui.Gray
 import com.intellij.ui.components.JBScrollPane
+import com.intellij.util.ui.StartupUiUtil
 import com.intellij.util.ui.update.Activatable
 import com.intellij.util.ui.update.UiNotifyConnector
 import com.wanggaowan.rndevtools.ui.listener.SimpleComponentListener
@@ -26,28 +28,29 @@ import javax.swing.*
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 
+@Suppress("UseJBColor")
 private object Config {
     var isDarkTheme = false
 
-    private val LINE_COLOR = Color(209, 209, 209)
-    private val LINE_COLOR_DARK = Color(50, 50, 50)
+    private val LINE_COLOR = Gray._209
+    private val LINE_COLOR_DARK = Gray._50
 
-    private val MOUSE_ENTER_COLOR = Color(223, 223, 223)
+    private val MOUSE_ENTER_COLOR = Gray._223
     private val MOUSE_ENTER_COLOR_DARK = Color(76, 80, 82)
 
     // 用于透明Icon使用
     private val MOUSE_ENTER_COLOR2 = Color(191, 197, 200)
     private val MOUSE_ENTER_COLOR_DARK2 = Color(98, 106, 110)
 
-    private val MOUSE_PRESS_COLOR = Color(207, 207, 207)
+    private val MOUSE_PRESS_COLOR = Gray._207
     private val MOUSE_PRESS_COLOR_DARK = Color(92, 97, 100)
 
     private val INPUT_FOCUS_COLOR = Color(71, 135, 201)
 
-    private val INPUT_UN_FOCUS_COLOR = Color(196, 196, 196)
-    private val INPUT_UN_FOCUS_COLOR_DARK = Color(100, 100, 100)
+    private val INPUT_UN_FOCUS_COLOR = Gray._196
+    private val INPUT_UN_FOCUS_COLOR_DARK = Gray._100
 
-    private val IMAGE_TITLE_BG_COLOR = Color(252, 252, 252)
+    private val IMAGE_TITLE_BG_COLOR = Gray._252
     private val IMAGE_TITLE_BG_COLOR_DARK = Color(49, 52, 53)
 
     val TRANSPARENT = Color(0, 0, 0, 0)
@@ -173,7 +176,7 @@ class ImagePreviewPanel(val project: Project) : JPanel(), Disposable {
     }
 
     private fun initPanel() {
-        val isDarkTheme = ColorUtil.isDark(background)
+        val isDarkTheme = StartupUiUtil.isUnderDarcula()
         Config.isDarkTheme = isDarkTheme
         SdkIcons.isDarkTheme = isDarkTheme
         val topPanel = JPanel()

@@ -1,5 +1,6 @@
 package com.wanggaowan.rndevtools.ui
 
+import com.intellij.util.ui.JBUI
 import java.awt.*
 import java.io.File
 import java.io.FileInputStream
@@ -12,12 +13,12 @@ import javax.swing.JPanel
  *
  * @author Created by wanggaowan on 2022/6/20 08:44
  */
-class ImageView(image: File? = null, val isDarkThem: Boolean = false) : JPanel() {
+class ImageView(image: File? = null, private val isDarkThem: Boolean = false) : JPanel() {
 
     private var image: Image? = null
     private var imgWidth = 0
     private var imgHeight = 0
-    private var mBorderInsets = Insets(0, 0, 0, 0)
+    private var mBorderInsets = JBUI.emptyInsets()
 
     init {
         image?.let { setImage(it) }

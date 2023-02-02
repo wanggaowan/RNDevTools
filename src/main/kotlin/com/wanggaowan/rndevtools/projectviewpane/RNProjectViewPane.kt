@@ -22,8 +22,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.openapi.util.registry.Registry
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiManager
+import com.wanggaowan.rndevtools.utils.XUtils
 import icons.SdkIcons
 import javax.swing.Icon
 
@@ -44,17 +44,7 @@ class RNProjectViewPane(val project: Project) : ProjectViewPane(project) {
      * 判断项目视图是否展示
      */
     override fun isInitiallyVisible(): Boolean {
-        val basePath = project.basePath ?: return false
-        val file = VirtualFileManager.getInstance().findFileByUrl("file://$basePath") ?: return false
-        var isRNProject = false
-        for (child in file.children) {
-            if (child.name == "package.json") {
-                // 存在package.json文件就认为是RN项目
-                isRNProject = true
-                break
-            }
-        }
-        return isRNProject
+        return XUtils.isRNProject(project)
     }
 
     override fun getIcon(): Icon {

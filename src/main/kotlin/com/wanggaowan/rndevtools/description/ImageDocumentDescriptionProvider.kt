@@ -11,6 +11,7 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.impl.source.tree.LeafPsiElement
+import com.wanggaowan.rndevtools.utils.XUtils
 import java.io.File
 import javax.imageio.ImageIO
 
@@ -25,10 +26,18 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
     }
 
     override fun generateHoverDoc(element: PsiElement, originalElement: PsiElement?): String? {
+        if (!XUtils.isRNProject(element.project)) {
+            return null
+        }
+
         return getDoc(element, originalElement)
     }
 
     override fun generateDoc(element: PsiElement?, originalElement: PsiElement?): String? {
+        if (element != null && !XUtils.isRNProject(element.project)) {
+            return null
+        }
+
         return getDoc(element, originalElement)
     }
 
@@ -170,6 +179,11 @@ class ImageDocumentDescriptionProvider : DocumentationProvider {
     override fun getCustomDocumentationElement(
         editor: Editor, file: PsiFile, contextElement: PsiElement?, targetOffset: Int
     ): PsiElement? {
+        val project = editor.project
+        if (project != null && !XUtils.isRNProject(project)) {
+            return null
+        }
+
         // 需要特殊显示的节点，需要生成自定义节点返回，然后才会进入generateHoverDoc/generateDoc方法
         val imageElement = getCustomImageDocumentationElement(contextElement)
         if (imageElement != null) {

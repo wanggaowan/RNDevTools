@@ -3,6 +3,7 @@ package com.wanggaowan.rndevtools.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.wanggaowan.rndevtools.utils.XUtils
 
 /**
  * 右键文档，在弹窗菜单生成一栏 生成文本资源引用
@@ -24,9 +25,16 @@ class CreateStringsResourceAction2 : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
+        val project = e.project ?: return
+        if (!XUtils.isRNProject(project)) {
+            e.presentation.isVisible = false
+            return
+        }
+
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
         if (virtualFile != null && !virtualFile.isDirectory) {
-            e.presentation.isVisible = true
+            val name = virtualFile.name
+            e.presentation.isVisible = name.endsWith(".js") || name.endsWith(".ts")
             return
         }
 

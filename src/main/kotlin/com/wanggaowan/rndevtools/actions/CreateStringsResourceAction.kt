@@ -3,10 +3,7 @@ package com.wanggaowan.rndevtools.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.diagnostic.logger
-
-
-private val Log = logger<CreateStringsResourceAction>()
+import com.wanggaowan.rndevtools.utils.XUtils
 
 /**
  * 右键目录/文件生成文本资源引用
@@ -28,6 +25,12 @@ class CreateStringsResourceAction : AnAction() {
     }
 
     override fun update(e: AnActionEvent) {
+        val project = e.project ?: return
+        if (!XUtils.isRNProject(project)) {
+            e.presentation.isVisible = false
+            return
+        }
+
         val virtualFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
         if (virtualFile == null) {
             e.presentation.isVisible = false
